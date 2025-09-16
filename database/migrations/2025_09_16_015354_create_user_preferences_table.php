@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_preferences', function (Blueprint $table) {
-            $table->id();
+            $table->id('preference_id');
+            $table->unsignedBigInteger('user_id');
+            $table->string('preference_name', 100);
+            $table->text('preference_value');
+            $table->string('preference_type', 50)->default('string');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->index(['user_id', 'preference_name']);
         });
     }
 
