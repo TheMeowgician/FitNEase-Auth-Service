@@ -12,11 +12,31 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->id('user_id');
+            $table->string('username', 50)->unique();
+            $table->string('email', 100)->unique();
+            $table->string('password_hash', 255);
+            $table->string('first_name', 50);
+            $table->string('last_name', 50);
+            $table->integer('age');
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
+            $table->enum('fitness_level', ['beginner', 'medium', 'expert'])->default('beginner');
+            $table->json('target_muscle_groups')->nullable();
+            $table->json('fitness_goals')->nullable();
+            $table->enum('activity_level', ['sedentary', 'lightly_active', 'moderately_active', 'very_active'])->default('sedentary');
+            $table->text('medical_conditions')->nullable();
+            $table->integer('workout_experience_years')->default(0);
+            $table->json('available_equipment')->nullable();
+            $table->integer('time_constraints_minutes')->default(20);
+            $table->boolean('onboarding_completed')->default(false);
+            $table->timestamp('onboarding_completed_at')->nullable();
+            $table->string('phone_number', 20)->nullable();
+            $table->string('profile_picture', 255)->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('email_verification_token', 255)->nullable();
+            $table->timestamp('email_verification_sent_at')->nullable();
+            $table->timestamp('last_login')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
