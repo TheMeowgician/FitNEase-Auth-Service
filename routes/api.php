@@ -7,6 +7,15 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 
+// Health check endpoint for Docker and service monitoring
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'service' => 'fitnease-auth',
+        'timestamp' => now()
+    ]);
+});
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
