@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ServiceTestController;
+use App\Http\Controllers\ServiceCommunicationTestController;
 
 // Health check endpoint for Docker and service monitoring
 Route::get('/health', function () {
@@ -75,4 +77,15 @@ Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
     Route::get('/user-stats', [UserController::class, 'getUserStats']);
     Route::get('/users/{id}/preferences', [UserController::class, 'getUserPreferences']);
     Route::post('/bulk-update-users', [UserController::class, 'bulkUpdateUsers']);
+});
+
+// Service testing routes - for validating inter-service communication
+Route::middleware('auth.api')->prefix('service-tests')->group(function () {
+    Route::get('/engagement', [ServiceTestController::class, 'testEngagementService']);
+    Route::get('/comms', [ServiceTestController::class, 'testCommsService']);
+    Route::get('/all', [ServiceTestController::class, 'testAllServices']);
+
+    Route::get('/connectivity', [ServiceCommunicationTestController::class, 'testServiceConnectivity']);
+    Route::get('/token-validation', [ServiceCommunicationTestController::class, 'testAuthTokenValidation']);
+    Route::get('/integration', [ServiceCommunicationTestController::class, 'testServiceIntegration']);
 });
