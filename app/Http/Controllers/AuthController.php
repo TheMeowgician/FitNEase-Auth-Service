@@ -190,8 +190,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'Please wait before requesting another verification email'], 429);
         }
 
+        $newVerificationCode = sprintf('%06d', mt_rand(100000, 999999));
+
         $user->update([
             'email_verification_token' => Str::random(64),
+            'email_verification_code' => $newVerificationCode,
+            'email_verification_code_expires_at' => now()->addMinutes(15),
             'email_verification_sent_at' => now()
         ]);
 
@@ -364,11 +368,12 @@ class AuthController extends Controller
         try {
             $commsClient = new Client();
 
-            $commsClient->post(env('COMMS_SERVICE_URL') . '/comms/send-verification', [
+            $commsClient->post(env('COMMS_SERVICE_URL') . '/api/comms/send-verification', [
                 'json' => [
                     'user_id' => $user->user_id,
                     'email' => $user->email,
                     'token' => $user->email_verification_token,
+                    'verification_code' => $user->email_verification_code,
                     'user_name' => $user->first_name,
                     'verification_url' => env('APP_URL') . '/verify-email?token=' . $user->email_verification_token
                 ]
