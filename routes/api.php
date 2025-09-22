@@ -22,6 +22,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/verify-code', [AuthController::class, 'verifyEmailCode']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     Route::get('/email-verification-status/{userId}', [AuthController::class, 'emailVerificationStatus']);
 
