@@ -25,6 +25,8 @@ class AuthController extends Controller
             'activity_level' => 'nullable|in:sedentary,lightly_active,moderately_active,very_active',
         ]);
 
+        $verificationCode = sprintf('%06d', mt_rand(100000, 999999));
+
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
@@ -36,6 +38,8 @@ class AuthController extends Controller
             'fitness_level' => $request->fitness_level ?? 'beginner',
             'activity_level' => $request->activity_level ?? 'sedentary',
             'email_verification_token' => Str::random(64),
+            'email_verification_code' => $verificationCode,
+            'email_verification_code_expires_at' => now()->addMinutes(15),
             'email_verification_sent_at' => now()
         ]);
 
@@ -132,6 +136,39 @@ class AuthController extends Controller
         $this->sendWelcomeEmail($user);
 
         return response()->json(['message' => 'Email verified successfully']);
+    }
+
+    public function verifyEmailCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6'
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->where('email_verification_code', $request->code)
+            ->whereNull('email_verified_at')
+            ->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Invalid verification code'], 400);
+        }
+
+        if ($user->email_verification_code_expires_at->isPast()) {
+            return response()->json(['error' => 'Verification code has expired'], 400);
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'email_verification_code' => null,
+            'email_verification_code_expires_at' => null,
+            'email_verification_token' => null,
+            'email_verification_sent_at' => null
+        ]);
+
+        $this->sendWelcomeEmail($user);
+
+        return response()->json(['message' => 'Email verified successfully with code']);
     }
 
     public function resendVerification(Request $request)

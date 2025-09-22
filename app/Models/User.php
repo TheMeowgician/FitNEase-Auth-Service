@@ -37,6 +37,8 @@ class User extends Authenticatable
         'email_verified_at',
         'email_verification_token',
         'email_verification_sent_at',
+        'email_verification_code',
+        'email_verification_code_expires_at',
         'last_login',
     ];
 
@@ -52,6 +54,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
             'email_verification_sent_at' => 'datetime',
+            'email_verification_code_expires_at' => 'datetime',
             'last_login' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
