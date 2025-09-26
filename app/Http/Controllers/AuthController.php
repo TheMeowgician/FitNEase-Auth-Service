@@ -218,6 +218,87 @@ class AuthController extends Controller
         ]);
     }
 
+    public function getVerificationCodeForDebug($email)
+    {
+        if (!env('APP_DEBUG', false)) {
+            return response()->json(['error' => 'Debug mode required'], 403);
+        }
+
+        $user = User::where('email', $email)
+            ->whereNull('email_verified_at')
+            ->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found or already verified'], 404);
+        }
+
+        if (!$user->email_verification_code) {
+            return response()->json(['error' => 'No verification code found'], 404);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'verification_code' => $user->email_verification_code,
+            'expires_at' => $user->email_verification_code_expires_at,
+            'is_expired' => $user->email_verification_code_expires_at->isPast()
+        ]);
+    }
+
+    public function getUserStatusForDebug($email)
+    {
+        if (!env('APP_DEBUG', false)) {
+            return response()->json(['error' => 'Debug mode required'], 403);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'username' => $user->username,
+            'is_verified' => !is_null($user->email_verified_at),
+            'email_verified_at' => $user->email_verified_at,
+            'has_verification_code' => !is_null($user->email_verification_code),
+            'verification_code' => $user->email_verification_code,
+            'code_expires_at' => $user->email_verification_code_expires_at,
+            'code_is_expired' => $user->email_verification_code_expires_at ? $user->email_verification_code_expires_at->isPast() : null,
+            'created_at' => $user->created_at
+        ]);
+    }
+
+    public function resetVerificationForDebug($email)
+    {
+        if (!env('APP_DEBUG', false)) {
+            return response()->json(['error' => 'Debug mode required'], 403);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $newVerificationCode = sprintf('%06d', mt_rand(100000, 999999));
+
+        $user->update([
+            'email_verified_at' => null,
+            'email_verification_code' => $newVerificationCode,
+            'email_verification_code_expires_at' => now()->addMinutes(15),
+            'email_verification_token' => Str::random(64),
+            'email_verification_sent_at' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'User verification status reset successfully',
+            'email' => $user->email,
+            'new_verification_code' => $newVerificationCode,
+            'expires_at' => $user->email_verification_code_expires_at
+        ]);
+    }
+
     public function getTokens(Request $request)
     {
         $tokens = $request->user()->tokens()->get(['id', 'name', 'abilities', 'last_used_at', 'created_at']);
@@ -347,7 +428,10 @@ class AuthController extends Controller
         $abilities = [
             'access-workouts',
             'manage-profile',
-            'social-features'
+            'social-features',
+            'ml-access',
+            'tracking-access',
+            'planning-access'
         ];
 
         $userRoles = $user->roles()->pluck('role_name');

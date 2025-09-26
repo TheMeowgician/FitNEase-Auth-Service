@@ -25,6 +25,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/verify-code', [AuthController::class, 'verifyEmailCode']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     Route::get('/email-verification-status/{userId}', [AuthController::class, 'emailVerificationStatus']);
+    Route::get('/debug-verification-code/{email}', [AuthController::class, 'getVerificationCodeForDebug']);
+    Route::get('/debug-user-status/{email}', [AuthController::class, 'getUserStatusForDebug']);
+    Route::post('/debug-reset-verification/{email}', [AuthController::class, 'resetVerificationForDebug']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
@@ -53,6 +56,11 @@ Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
     Route::delete('/fitness-assessments/{id}', [AssessmentController::class, 'destroy']);
     Route::get('/users/{userId}/assessments', [AssessmentController::class, 'getUserAssessments']);
     Route::get('/users/{userId}/assessments/{type}', [AssessmentController::class, 'getAssessmentsByType']);
+});
+
+// ML Profile Initialization - accessible to all authenticated users
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/api/users/initialize-ml-profile', [UserController::class, 'initializeMLProfile']);
 });
 
 Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {

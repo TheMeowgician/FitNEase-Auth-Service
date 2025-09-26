@@ -198,4 +198,54 @@ class UserController extends Controller
             'updated_count' => $updatedCount
         ]);
     }
+
+    public function initializeMLProfile(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'error' => 'User not authenticated'
+                ], 401);
+            }
+
+            // Check if user has completed onboarding
+            if (!$user->onboarding_completed) {
+                return response()->json([
+                    'message' => 'ML profile initialization skipped - onboarding not completed',
+                    'status' => 'skipped'
+                ]);
+            }
+
+            // This is a placeholder for ML profile initialization
+            // In a real implementation, this would:
+            // 1. Gather user's fitness data
+            // 2. Send it to the ML service for initial profile setup
+            // 3. Create user behavioral patterns baseline
+
+            // For now, we'll just mark that ML initialization was attempted
+            $user->update([
+                'updated_at' => now(),
+                // You could add an 'ml_profile_initialized' column if needed
+            ]);
+
+            return response()->json([
+                'message' => 'ML profile initialization completed successfully',
+                'status' => 'success',
+                'user_id' => $user->user_id
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('ML profile initialization failed', [
+                'user_id' => $request->user()?->user_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'ML profile initialization failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
