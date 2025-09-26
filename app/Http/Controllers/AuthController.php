@@ -411,14 +411,27 @@ class AuthController extends Controller
             'time_constraints_minutes' => 'sometimes|integer|min:1',
             'phone_number' => 'sometimes|nullable|string|max:20',
             'profile_picture' => 'sometimes|nullable|string|max:255',
+            'onboarding_completed' => 'sometimes|boolean',
         ]);
 
-        $user->update($request->only([
+        // Prepare update data
+        $updateData = $request->only([
             'first_name', 'last_name', 'age', 'gender', 'fitness_level',
             'target_muscle_groups', 'fitness_goals', 'activity_level',
             'medical_conditions', 'workout_experience_years', 'available_equipment',
             'time_constraints_minutes', 'phone_number', 'profile_picture'
-        ]));
+        ]);
+
+        // Handle onboarding completion
+        if ($request->has('onboarding_completed')) {
+            $updateData['onboarding_completed'] = $request->onboarding_completed;
+
+            if ($request->onboarding_completed) {
+                $updateData['onboarding_completed_at'] = now();
+            }
+        }
+
+        $user->update($updateData);
 
         return response()->json($user);
     }

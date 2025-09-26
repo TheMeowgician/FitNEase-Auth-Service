@@ -58,7 +58,7 @@ Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
     Route::get('/users/{userId}/assessments/{type}', [AssessmentController::class, 'getAssessmentsByType']);
 });
 
-// ML Profile Initialization - accessible to all authenticated users
+// ML Profile Management - accessible to authenticated users
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/api/users/initialize-ml-profile', [UserController::class, 'initializeMLProfile']);
 });
