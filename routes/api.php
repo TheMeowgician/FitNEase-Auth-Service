@@ -29,7 +29,7 @@ Route::prefix('auth')->group(function () {
     Route::get('/debug-user-status/{email}', [AuthController::class, 'getUserStatusForDebug']);
     Route::post('/debug-reset-verification/{email}', [AuthController::class, 'resetVerificationForDebug']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth.api')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
         Route::delete('/logout', [AuthController::class, 'logout']);
         Route::delete('/logout-all', [AuthController::class, 'logoutAll']);
