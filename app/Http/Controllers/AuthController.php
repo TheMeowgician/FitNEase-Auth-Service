@@ -104,7 +104,14 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        // Get user data from request attributes (set by ValidateApiToken middleware)
+        $userData = $request->attributes->get('user');
+
+        if (!$userData) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json($userData);
     }
 
     public function verifyEmail(Request $request)
