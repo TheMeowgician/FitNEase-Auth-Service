@@ -21,7 +21,6 @@ class AuthController extends Controller
             'last_name' => 'required',
             'age' => 'required|integer|between:18,100',
             'gender' => 'nullable|in:male,female,other',
-            'fitness_level' => 'nullable|in:beginner,medium,expert',
             'activity_level' => 'nullable|in:sedentary,lightly_active,moderately_active,very_active',
         ]);
 
@@ -35,7 +34,6 @@ class AuthController extends Controller
             'last_name' => $request->last_name,
             'age' => $request->age,
             'gender' => $request->gender,
-            'fitness_level' => $request->fitness_level ?? 'beginner',
             'activity_level' => $request->activity_level ?? 'sedentary',
             'email_verification_token' => Str::random(64),
             'email_verification_code' => $verificationCode,
@@ -408,7 +406,6 @@ class AuthController extends Controller
             'last_name' => 'sometimes|required|string|max:50',
             'age' => 'sometimes|required|integer|between:18,100',
             'gender' => 'sometimes|nullable|in:male,female,other',
-            'fitness_level' => 'sometimes|nullable|in:beginner,medium,expert',
             'target_muscle_groups' => 'sometimes|array',
             'fitness_goals' => 'sometimes|array',
             'activity_level' => 'sometimes|nullable|in:sedentary,lightly_active,moderately_active,very_active',
@@ -421,9 +418,9 @@ class AuthController extends Controller
             'onboarding_completed' => 'sometimes|boolean',
         ]);
 
-        // Prepare update data
+        // Prepare update data (fitness_level removed - now managed via fitness assessments)
         $updateData = $request->only([
-            'first_name', 'last_name', 'age', 'gender', 'fitness_level',
+            'first_name', 'last_name', 'age', 'gender',
             'target_muscle_groups', 'fitness_goals', 'activity_level',
             'medical_conditions', 'workout_experience_years', 'available_equipment',
             'time_constraints_minutes', 'phone_number', 'profile_picture'

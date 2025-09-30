@@ -21,7 +21,6 @@ class User extends Authenticatable
         'last_name',
         'age',
         'gender',
-        'fitness_level',
         'target_muscle_groups',
         'fitness_goals',
         'activity_level',
@@ -46,6 +45,10 @@ class User extends Authenticatable
         'password_hash',
         'remember_token',
         'email_verification_token',
+    ];
+
+    protected $appends = [
+        'fitness_level',
     ];
 
     protected function casts(): array
@@ -101,5 +104,24 @@ class User extends Authenticatable
                 $query->where('permission_name', $permissionName);
             })
             ->exists();
+    }
+
+    /**
+     * Get fitness level from latest fitness assessment
+     * This accessor maintains backward compatibility while reading from the correct source
+     */
+    public function getFitnessLevelAttribute($value)
+    {
+        // Get latest assessment's fitness level
+        $latestAssessment = $this->fitnessAssessments()
+            ->latest('assessment_date')
+            ->first();
+
+        if ($latestAssessment && isset($latestAssessment->assessment_data['fitness_level'])) {
+            return $latestAssessment->assessment_data['fitness_level'];
+        }
+
+        // Default fallback if no assessment exists
+        return 'beginner';
     }
 }

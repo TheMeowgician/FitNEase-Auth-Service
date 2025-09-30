@@ -34,7 +34,12 @@ class UserController extends Controller
         }
 
         if ($request->has('fitness_level')) {
-            $query->where('fitness_level', $request->fitness_level);
+            // Filter by fitness level from latest assessment
+            $query->whereHas('fitnessAssessments', function ($q) use ($request) {
+                $q->whereRaw("JSON_EXTRACT(assessment_data, '$.fitness_level') = ?", [$request->fitness_level])
+                  ->orderBy('assessment_date', 'desc')
+                  ->limit(1);
+            });
         }
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
@@ -68,7 +73,6 @@ class UserController extends Controller
             'last_name' => 'sometimes|required|string|max:50',
             'age' => 'sometimes|required|integer|between:18,100',
             'gender' => 'sometimes|nullable|in:male,female,other',
-            'fitness_level' => 'sometimes|nullable|in:beginner,medium,expert',
             'target_muscle_groups' => 'sometimes|array',
             'fitness_goals' => 'sometimes|array',
             'activity_level' => 'sometimes|nullable|in:sedentary,lightly_active,moderately_active,very_active',
@@ -157,9 +161,6 @@ class UserController extends Controller
             'active_users' => User::where('is_active', true)->count(),
             'verified_users' => User::whereNotNull('email_verified_at')->count(),
             'onboarded_users' => User::where('onboarding_completed', true)->count(),
-            'users_by_fitness_level' => User::selectRaw('fitness_level, count(*) as count')
-                ->groupBy('fitness_level')
-                ->get(),
             'users_by_activity_level' => User::selectRaw('activity_level, count(*) as count')
                 ->groupBy('activity_level')
                 ->get(),
@@ -187,7 +188,6 @@ class UserController extends Controller
             'user_ids.*' => 'exists:users,user_id',
             'updates' => 'required|array',
             'updates.is_active' => 'sometimes|boolean',
-            'updates.fitness_level' => 'sometimes|in:beginner,medium,expert',
         ]);
 
         $updatedCount = User::whereIn('user_id', $request->user_ids)

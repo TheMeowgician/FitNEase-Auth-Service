@@ -24,7 +24,6 @@ class RegisterRequest extends FormRequest
             'last_name' => 'required|string|max:50',
             'age' => 'required|integer|between:18,100',
             'gender' => 'nullable|in:male,female,other',
-            'fitness_level' => 'nullable|in:beginner,medium,expert',
             'target_muscle_groups' => 'nullable|array',
             'target_muscle_groups.*' => 'in:core,upper_body,lower_body',
             'fitness_goals' => 'nullable|array',

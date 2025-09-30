@@ -25,7 +25,6 @@ class UpdateProfileRequest extends FormRequest
             'last_name' => 'sometimes|required|string|max:50',
             'age' => 'sometimes|required|integer|between:18,100',
             'gender' => 'sometimes|nullable|in:male,female,other',
-            'fitness_level' => 'sometimes|nullable|in:beginner,medium,expert',
             'target_muscle_groups' => 'sometimes|nullable|array',
             'target_muscle_groups.*' => 'in:core,upper_body,lower_body',
             'fitness_goals' => 'sometimes|nullable|array',
