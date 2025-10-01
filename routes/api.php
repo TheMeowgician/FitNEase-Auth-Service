@@ -98,3 +98,8 @@ Route::middleware('auth.api')->prefix('service-tests')->group(function () {
     Route::get('/token-validation', [ServiceCommunicationTestController::class, 'testAuthTokenValidation']);
     Route::get('/integration', [ServiceCommunicationTestController::class, 'testServiceIntegration']);
 });
+
+// ML Internal Endpoints - For ML service internal calls (no auth required)
+Route::prefix('ml-internal')->group(function () {
+    Route::get('/user-profile/{id}', [AuthController::class, 'getUserProfile']);
+});
