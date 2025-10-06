@@ -418,6 +418,7 @@ class AuthController extends Controller
             'workout_experience_years' => 'sometimes|integer|min:0',
             'available_equipment' => 'sometimes|array',
             'time_constraints_minutes' => 'sometimes|integer|min:1',
+            'preferred_workout_days' => 'sometimes|array',
             'phone_number' => 'sometimes|nullable|string|max:20',
             'profile_picture' => 'sometimes|nullable|string|max:255',
             'onboarding_completed' => 'sometimes|boolean',
@@ -428,7 +429,7 @@ class AuthController extends Controller
             'first_name', 'last_name', 'age', 'date_of_birth', 'gender',
             'target_muscle_groups', 'fitness_goals', 'activity_level',
             'medical_conditions', 'workout_experience_years', 'available_equipment',
-            'time_constraints_minutes', 'phone_number', 'profile_picture'
+            'time_constraints_minutes', 'preferred_workout_days', 'phone_number', 'profile_picture'
         ]);
 
         // Handle onboarding completion

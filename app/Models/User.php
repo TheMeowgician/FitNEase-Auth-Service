@@ -29,6 +29,7 @@ class User extends Authenticatable
         'workout_experience_years',
         'available_equipment',
         'time_constraints_minutes',
+        'preferred_workout_days',
         'onboarding_completed',
         'onboarding_completed_at',
         'phone_number',
@@ -71,6 +72,7 @@ class User extends Authenticatable
             'target_muscle_groups' => 'array',
             'fitness_goals' => 'array',
             'available_equipment' => 'array',
+            'preferred_workout_days' => 'array',
         ];
     }
 
