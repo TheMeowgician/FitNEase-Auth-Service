@@ -60,7 +60,7 @@ Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
 
 // ML Profile Management - accessible to authenticated users
 Route::middleware('auth:sanctum')->group(function () {
-    Route::put('/api/users/initialize-ml-profile', [UserController::class, 'initializeMLProfile']);
+    Route::put('/users/initialize-ml-profile', [UserController::class, 'initializeMLProfile']);
 });
 
 Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
