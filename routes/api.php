@@ -31,6 +31,7 @@ Route::prefix('auth')->group(function () {
 
     Route::middleware('auth.api')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::delete('/logout', [AuthController::class, 'logout']);
         Route::delete('/logout-all', [AuthController::class, 'logoutAll']);
         Route::get('/tokens', [AuthController::class, 'getTokens']);

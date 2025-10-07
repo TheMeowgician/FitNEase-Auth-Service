@@ -90,6 +90,41 @@ class AuthController extends Controller
         ]);
     }
 
+    public function refresh(Request $request)
+    {
+        // Get user data from request attributes (set by ValidateApiToken middleware)
+        $userData = $request->attributes->get('user');
+        $userId = $request->attributes->get('user_id');
+
+        if (!$userData || !$userId) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+
+        // Get the actual User model
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Get current token from bearer header and delete it
+        $token = $request->bearerToken();
+        $currentAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if ($currentAccessToken) {
+            $currentAccessToken->delete();
+        }
+
+        // Generate a new token with the same abilities
+        $abilities = $this->getUserAbilities($user);
+        $newToken = $user->createToken('fitnease-mobile', $abilities)->plainTextToken;
+
+        return response()->json([
+            'token' => $newToken,
+            'abilities' => $abilities,
+            'expires_at' => now()->addDays(365),
+            'user' => $user
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -367,22 +402,25 @@ class AuthController extends Controller
 
     public function validateToken(Request $request)
     {
-        $user = $request->user();
+        // Get user data from request attributes (set by ValidateApiToken middleware)
+        $userData = $request->attributes->get('user');
 
-        if (!$user) {
+        if (!$userData) {
             return response()->json(['error' => 'Invalid token'], 401);
         }
 
-        $token = $request->user()->currentAccessToken();
+        // Get token from bearer header and find it in database
+        $token = $request->bearerToken();
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
         return response()->json([
             'valid' => true,
-            'user_id' => $user->user_id,
-            'email' => $user->email,
-            'email_verified' => !is_null($user->email_verified_at),
-            'abilities' => $token->abilities,
-            'token_name' => $token->name,
-            'last_used_at' => $token->last_used_at
+            'user_id' => $userData['user_id'],
+            'email' => $userData['email'],
+            'email_verified' => !is_null($userData['email_verified_at'] ?? null),
+            'abilities' => $accessToken ? $accessToken->abilities : [],
+            'token_name' => $accessToken ? $accessToken->name : null,
+            'last_used_at' => $accessToken ? $accessToken->last_used_at : null
         ]);
     }
 
