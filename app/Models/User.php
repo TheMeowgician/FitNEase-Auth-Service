@@ -22,6 +22,7 @@ class User extends Authenticatable
         'age',
         'date_of_birth',
         'gender',
+        'fitness_level',
         'target_muscle_groups',
         'fitness_goals',
         'activity_level',
@@ -41,16 +42,25 @@ class User extends Authenticatable
         'email_verification_code',
         'email_verification_code_expires_at',
         'last_login',
+        // User Progression System fields
+        'fitness_level_updated_at',
+        'total_workouts_completed',
+        'total_workout_minutes',
+        'advanced_workouts_completed',
+        'longest_streak_days',
+        'current_streak_days',
+        'goals_achieved_count',
+        'group_workouts_count',
+        'last_workout_date',
+        'profile_completeness_percentage',
+        'active_days',
+        'last_active_date',
     ];
 
     protected $hidden = [
         'password_hash',
         'remember_token',
         'email_verification_token',
-    ];
-
-    protected $appends = [
-        'fitness_level',
     ];
 
     protected function casts(): array
@@ -73,6 +83,19 @@ class User extends Authenticatable
             'fitness_goals' => 'array',
             'available_equipment' => 'array',
             'preferred_workout_days' => 'array',
+            // User Progression System casts
+            'fitness_level_updated_at' => 'datetime',
+            'last_workout_date' => 'date',
+            'total_workouts_completed' => 'integer',
+            'total_workout_minutes' => 'integer',
+            'advanced_workouts_completed' => 'integer',
+            'longest_streak_days' => 'integer',
+            'current_streak_days' => 'integer',
+            'goals_achieved_count' => 'integer',
+            'group_workouts_count' => 'integer',
+            'profile_completeness_percentage' => 'integer',
+            'active_days' => 'integer',
+            'last_active_date' => 'date',
         ];
     }
 
@@ -108,24 +131,5 @@ class User extends Authenticatable
                 $query->where('permission_name', $permissionName);
             })
             ->exists();
-    }
-
-    /**
-     * Get fitness level from latest fitness assessment
-     * This accessor maintains backward compatibility while reading from the correct source
-     */
-    public function getFitnessLevelAttribute($value)
-    {
-        // Get latest assessment's fitness level
-        $latestAssessment = $this->fitnessAssessments()
-            ->latest('assessment_date')
-            ->first();
-
-        if ($latestAssessment && isset($latestAssessment->assessment_data['fitness_level'])) {
-            return $latestAssessment->assessment_data['fitness_level'];
-        }
-
-        // Default fallback if no assessment exists
-        return 'beginner';
     }
 }

@@ -87,6 +87,12 @@ Route::middleware(['auth:sanctum', 'ability:admin-access'])->group(function () {
     Route::get('/user-stats', [UserController::class, 'getUserStats']);
     Route::get('/users/{id}/preferences', [UserController::class, 'getUserPreferences']);
     Route::post('/bulk-update-users', [UserController::class, 'bulkUpdateUsers']);
+
+    // User Progression System Routes
+    Route::put('/users/{id}/fitness-level', [UserController::class, 'updateFitnessLevel']);
+    Route::put('/users/{id}/progression-metrics', [UserController::class, 'updateProgressionMetrics']);
+    Route::put('/users/{id}/streak', [UserController::class, 'updateStreak']);
+    Route::put('/users/{id}/goals-achieved', [UserController::class, 'incrementGoalsAchieved']);
 });
 
 // Service testing routes - for validating inter-service communication
@@ -103,4 +109,13 @@ Route::middleware('auth.api')->prefix('service-tests')->group(function () {
 // ML Internal Endpoints - For ML service internal calls (no auth required)
 Route::prefix('ml-internal')->group(function () {
     Route::get('/user-profile/{id}', [AuthController::class, 'getUserProfile']);
+});
+
+// Internal Service Endpoints - For inter-service communication (no auth required)
+Route::prefix('internal')->group(function () {
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}/fitness-level', [UserController::class, 'updateFitnessLevel']);
+    Route::put('/users/{id}/progression-metrics', [UserController::class, 'updateProgressionMetrics']);
+    Route::put('/users/{id}/streak', [UserController::class, 'updateStreak']);
+    Route::put('/users/{id}/goals-achieved', [UserController::class, 'incrementGoalsAchieved']);
 });

@@ -77,13 +77,23 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $user->update(['last_login' => now()]);
+        // Update last login and track active days
+        $updates = ['last_login' => now()];
+
+        // Increment active_days only if this is a new day
+        $today = now()->toDateString();
+        if ($user->last_active_date === null || $user->last_active_date->toDateString() !== $today) {
+            $updates['active_days'] = ($user->active_days ?? 0) + 1;
+            $updates['last_active_date'] = $today;
+        }
+
+        $user->update($updates);
 
         $abilities = $this->getUserAbilities($user);
         $token = $user->createToken('fitnease-mobile', $abilities)->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => $user->fresh(), // Refresh to get updated active_days
             'token' => $token,
             'abilities' => $abilities,
             'expires_at' => now()->addDays(365)
