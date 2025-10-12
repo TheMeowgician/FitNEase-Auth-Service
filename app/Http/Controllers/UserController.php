@@ -390,4 +390,32 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Get user by username
+     * GET /api/auth/user-by-username/{username}
+     */
+    public function getUserByUsername($username)
+    {
+        $user = User::where('username', $username)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'User not found',
+                'message' => 'No active user found with username: ' . $username
+            ], 404);
+        }
+
+        // Return only necessary information for invitations
+        return response()->json([
+            'user_id' => $user->user_id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'profile_picture' => $user->profile_picture
+        ]);
+    }
+
 }

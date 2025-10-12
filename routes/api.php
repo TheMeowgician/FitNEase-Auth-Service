@@ -38,6 +38,7 @@ Route::prefix('auth')->group(function () {
         Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken']);
         Route::get('/validate', [AuthController::class, 'validateToken']);
         Route::get('/user-profile/{id}', [AuthController::class, 'getUserProfile']);
+        Route::get('/user-by-username/{username}', [UserController::class, 'getUserByUsername']);
     });
 
     Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
