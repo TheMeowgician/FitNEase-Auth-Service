@@ -187,6 +187,7 @@ class AuthController extends Controller
             'email_verification_sent_at' => null
         ]);
 
+        $this->deleteEmailVerificationNotification($user);
         $this->sendWelcomeEmail($user);
 
         return response()->json(['message' => 'Email verified successfully']);
@@ -212,17 +213,32 @@ class AuthController extends Controller
             return response()->json(['error' => 'Verification code has expired'], 400);
         }
 
+        // Update user verification status and last login
         $user->update([
             'email_verified_at' => now(),
             'email_verification_code' => null,
             'email_verification_code_expires_at' => null,
             'email_verification_token' => null,
-            'email_verification_sent_at' => null
+            'email_verification_sent_at' => null,
+            'last_login' => now(),
+            'last_active_date' => now()->toDateString(),
+            'active_days' => ($user->active_days ?? 0) + 1,
         ]);
 
+        $this->deleteEmailVerificationNotification($user);
         $this->sendWelcomeEmail($user);
 
-        return response()->json(['message' => 'Email verified successfully with code']);
+        // Automatically log in the user by generating tokens
+        $abilities = $this->getUserAbilities($user);
+        $token = $user->createToken('fitnease-mobile', $abilities)->plainTextToken;
+
+        return response()->json([
+            'message' => 'Email verified successfully with code',
+            'user' => $user->fresh(),
+            'token' => $token,
+            'abilities' => $abilities,
+            'expires_at' => now()->addDays(365)
+        ]);
     }
 
     public function resendVerification(Request $request)
@@ -552,6 +568,19 @@ class AuthController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to send welcome email: ' . $e->getMessage());
+        }
+    }
+
+    private function deleteEmailVerificationNotification($user)
+    {
+        try {
+            $commsClient = new Client();
+
+            $commsClient->delete(env('COMMS_SERVICE_URL') . '/api/comms/notifications/email-verification/' . $user->user_id);
+
+            \Log::info('Email verification notification deleted for user: ' . $user->user_id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete email verification notification: ' . $e->getMessage());
         }
     }
 }

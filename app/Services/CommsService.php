@@ -175,4 +175,48 @@ class CommsService
             return null;
         }
     }
+
+    public function deleteEmailVerificationNotification($userId, $token)
+    {
+        try {
+            Log::info('Deleting email verification notification via comms service', [
+                'service' => 'fitnease-auth',
+                'user_id' => $userId,
+                'comms_service_url' => $this->baseUrl
+            ]);
+
+            $response = Http::timeout(30)->withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->delete($this->baseUrl . '/api/comms/notifications/email-verification/' . $userId);
+
+            if ($response->successful()) {
+                Log::info('Email verification notification deleted successfully', [
+                    'service' => 'fitnease-auth',
+                    'user_id' => $userId
+                ]);
+
+                return $response->json();
+            }
+
+            Log::warning('Failed to delete email verification notification', [
+                'service' => 'fitnease-auth',
+                'status' => $response->status(),
+                'response_body' => $response->body()
+            ]);
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('Comms service communication error', [
+                'service' => 'fitnease-auth',
+                'error' => $e->getMessage(),
+                'user_id' => $userId,
+                'comms_service_url' => $this->baseUrl
+            ]);
+
+            return null;
+        }
+    }
 }
