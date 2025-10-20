@@ -118,6 +118,7 @@ Route::post('/batch-user-profiles', [AuthController::class, 'batchUserProfiles']
 // Internal Service Endpoints - For inter-service communication (no auth required)
 Route::prefix('internal')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::get('/user-profile/{id}', [AuthController::class, 'getUserProfile']);
     Route::put('/users/{id}/fitness-level', [UserController::class, 'updateFitnessLevel']);
     Route::put('/users/{id}/progression-metrics', [UserController::class, 'updateProgressionMetrics']);
     Route::put('/users/{id}/streak', [UserController::class, 'updateStreak']);
