@@ -442,6 +442,8 @@ class AuthController extends Controller
         return response()->json([
             'valid' => true,
             'user_id' => $userData['user_id'],
+            'username' => $userData['username'] ?? null, // IMPORTANT: Include username for presence channels
+            'name' => $userData['name'] ?? $userData['username'] ?? null,
             'email' => $userData['email'],
             'email_verified' => !is_null($userData['email_verified_at'] ?? null),
             'abilities' => $accessToken ? $accessToken->abilities : [],
@@ -459,6 +461,43 @@ class AuthController extends Controller
         }
 
         return response()->json($user);
+    }
+
+    /**
+     * Batch fetch user profiles (for efficient username lookups)
+     * Much faster than making individual requests
+     */
+    public function batchUserProfiles(Request $request)
+    {
+        $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'integer'
+        ]);
+
+        $userIds = $request->user_ids;
+
+        // Fetch all users in one query - IMPORTANT: Use 'user_id' as primary key
+        $users = User::whereIn('user_id', $userIds)
+            ->select('user_id', 'username', 'email', 'first_name', 'last_name')
+            ->get();
+
+        // Format response
+        $profiles = $users->map(function($user) {
+            return [
+                'id' => $user->user_id,
+                'user_id' => $user->user_id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $profiles,
+            'count' => $profiles->count()
+        ]);
     }
 
     public function updateProfile(Request $request, $id)

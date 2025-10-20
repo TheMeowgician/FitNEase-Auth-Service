@@ -112,6 +112,9 @@ Route::prefix('ml-internal')->group(function () {
     Route::get('/user-profile/{id}', [AuthController::class, 'getUserProfile']);
 });
 
+// Service-to-service batch endpoints (no auth required)
+Route::post('/batch-user-profiles', [AuthController::class, 'batchUserProfiles']);
+
 // Internal Service Endpoints - For inter-service communication (no auth required)
 Route::prefix('internal')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);
