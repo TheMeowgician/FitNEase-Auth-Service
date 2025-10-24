@@ -509,6 +509,7 @@ class AuthController extends Controller
         }
 
         $request->validate([
+            'username' => 'sometimes|required|string|max:50|unique:users,username,' . $id . ',user_id',
             'first_name' => 'sometimes|required|string|max:50',
             'last_name' => 'sometimes|required|string|max:50',
             'age' => 'sometimes|required|integer|between:18,100',
@@ -529,7 +530,7 @@ class AuthController extends Controller
 
         // Prepare update data (fitness_level removed - now managed via fitness assessments)
         $updateData = $request->only([
-            'first_name', 'last_name', 'age', 'date_of_birth', 'gender',
+            'username', 'first_name', 'last_name', 'age', 'date_of_birth', 'gender',
             'target_muscle_groups', 'fitness_goals', 'activity_level',
             'medical_conditions', 'workout_experience_years', 'available_equipment',
             'time_constraints_minutes', 'preferred_workout_days', 'phone_number', 'profile_picture'
