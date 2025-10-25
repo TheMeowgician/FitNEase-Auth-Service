@@ -13,17 +13,26 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // RESEARCH REQUIREMENT: Age must be between 18-54 years
+        // This restriction is implemented to minimize the risk of exercise-related
+        // injuries during high-intensity Tabata training workouts.
         $request->validate([
             'username' => 'required|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'first_name' => 'required',
             'last_name' => 'required',
-            'age' => 'required|integer|between:18,100',
-            'date_of_birth' => 'nullable|date',
+            'age' => 'required|integer|between:18,54',  // Updated from 18,100 to 18,54
+            'date_of_birth' => 'nullable|date|before:today',  // Added before:today validation
             'gender' => 'nullable|in:male,female,other',
             'phone_number' => 'nullable|string|max:20',
             'activity_level' => 'nullable|in:sedentary,lightly_active,moderately_active,very_active',
+        ], [
+            // Custom error messages for age validation
+            'age.between' => 'Registration is limited to users aged 18-54 years for safety during high-intensity training.',
+            'age.required' => 'Age is required for registration.',
+            'age.integer' => 'Please provide a valid age.',
+            'date_of_birth.before' => 'Birthdate must be in the past.',
         ]);
 
         $verificationCode = sprintf('%06d', mt_rand(100000, 999999));
