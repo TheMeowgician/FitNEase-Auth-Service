@@ -517,11 +517,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
+        // RESEARCH REQUIREMENT: Age must be between 18-54 years
         $request->validate([
             'username' => 'sometimes|required|string|max:50|unique:users,username,' . $id . ',user_id',
             'first_name' => 'sometimes|required|string|max:50',
             'last_name' => 'sometimes|required|string|max:50',
-            'age' => 'sometimes|required|integer|between:18,100',
+            'age' => 'sometimes|required|integer|between:18,54',
             'date_of_birth' => 'sometimes|nullable|date',
             'gender' => 'sometimes|nullable|in:male,female,other',
             'target_muscle_groups' => 'sometimes|array',

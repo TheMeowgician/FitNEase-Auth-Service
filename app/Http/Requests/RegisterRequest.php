@@ -16,13 +16,16 @@ class RegisterRequest extends FormRequest
 
     public function rules(): array
     {
+        // RESEARCH REQUIREMENT: Age must be between 18-54 years
+        // This restriction minimizes the risk of exercise-related injuries
+        // during high-intensity Tabata training workouts.
         return [
             'username' => 'required|string|max:50|unique:users',
             'email' => 'required|email|max:100|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'first_name' => 'required|string|max:50',
             'last_name' => 'required|string|max:50',
-            'age' => 'required|integer|between:18,100',
+            'age' => 'required|integer|between:18,54',
             'gender' => 'nullable|in:male,female,other',
             'target_muscle_groups' => 'nullable|array',
             'target_muscle_groups.*' => 'in:core,upper_body,lower_body',
@@ -45,7 +48,7 @@ class RegisterRequest extends FormRequest
             'email.unique' => 'This email is already registered.',
             'password.min' => 'Password must be at least 8 characters long.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'age.between' => 'Age must be between 18 and 100.',
+            'age.between' => 'Registration is limited to users aged 18-54 years for safety during high-intensity training.',
         ];
     }
 }

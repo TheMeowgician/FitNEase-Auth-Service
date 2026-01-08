@@ -71,7 +71,7 @@ class UserController extends Controller
             'email' => 'sometimes|required|email|max:100|unique:users,email,' . $id . ',user_id',
             'first_name' => 'sometimes|required|string|max:50',
             'last_name' => 'sometimes|required|string|max:50',
-            'age' => 'sometimes|required|integer|between:18,100',
+            'age' => 'sometimes|required|integer|between:18,54',  // RESEARCH REQUIREMENT: 18-54 years only
             'gender' => 'sometimes|nullable|in:male,female,other',
             'target_muscle_groups' => 'sometimes|array',
             'fitness_goals' => 'sometimes|array',
