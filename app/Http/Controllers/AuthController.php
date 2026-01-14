@@ -27,6 +27,7 @@ class AuthController extends Controller
             'gender' => 'nullable|in:male,female,other',
             'phone_number' => 'nullable|string|max:20',
             'activity_level' => 'nullable|in:sedentary,lightly_active,moderately_active,very_active',
+            'role' => 'nullable|in:member,mentor',  // Accept role during registration
         ], [
             // Custom error messages for age validation
             'age.between' => 'Registration is limited to users aged 18-54 years for safety during high-intensity training.',
@@ -53,6 +54,16 @@ class AuthController extends Controller
             'email_verification_code_expires_at' => now()->addMinutes(15),
             'email_verification_sent_at' => now()
         ]);
+
+        // Assign role to user (default to 'member' if not specified)
+        $roleName = $request->role ?? 'member';
+        $role = \App\Models\Role::where('role_name', $roleName)->first();
+        if ($role) {
+            $user->roles()->attach($role->role_id, [
+                'assigned_at' => now(),
+                'is_active' => true,
+            ]);
+        }
 
         $this->sendEmailVerification($user);
 
@@ -102,7 +113,7 @@ class AuthController extends Controller
         $token = $user->createToken('fitnease-mobile', $abilities)->plainTextToken;
 
         return response()->json([
-            'user' => $user->fresh(), // Refresh to get updated active_days
+            'user' => $this->getUserWithRole($user->fresh()), // Include role in response
             'token' => $token,
             'abilities' => $abilities,
             'expires_at' => now()->addDays(365)
@@ -140,7 +151,7 @@ class AuthController extends Controller
             'token' => $newToken,
             'abilities' => $abilities,
             'expires_at' => now()->addDays(365),
-            'user' => $user
+            'user' => $this->getUserWithRole($user) // Include role in response
         ]);
     }
 
@@ -165,6 +176,15 @@ class AuthController extends Controller
 
         if (!$userData) {
             return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Get the actual User model to fetch the role
+        $userId = $userData['user_id'] ?? null;
+        if ($userId) {
+            $user = User::find($userId);
+            if ($user) {
+                $userData['role'] = $this->getUserPrimaryRole($user);
+            }
         }
 
         return response()->json($userData);
@@ -243,7 +263,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Email verified successfully with code',
-            'user' => $user->fresh(),
+            'user' => $this->getUserWithRole($user->fresh()), // Include role in response
             'token' => $token,
             'abilities' => $abilities,
             'expires_at' => now()->addDays(365)
@@ -448,6 +468,16 @@ class AuthController extends Controller
         $token = $request->bearerToken();
         $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
+        // Get the user's role
+        $role = 'member'; // Default
+        $userId = $userData['user_id'] ?? null;
+        if ($userId) {
+            $user = User::find($userId);
+            if ($user) {
+                $role = $this->getUserPrimaryRole($user);
+            }
+        }
+
         return response()->json([
             'valid' => true,
             'user_id' => $userData['user_id'],
@@ -455,6 +485,7 @@ class AuthController extends Controller
             'name' => $userData['name'] ?? $userData['username'] ?? null,
             'email' => $userData['email'],
             'email_verified' => !is_null($userData['email_verified_at'] ?? null),
+            'role' => $role, // Include role in validation response
             'abilities' => $accessToken ? $accessToken->abilities : [],
             'token_name' => $accessToken ? $accessToken->name : null,
             'last_used_at' => $accessToken ? $accessToken->last_used_at : null
@@ -581,7 +612,41 @@ class AuthController extends Controller
             $abilities[] = 'premium-features';
         }
 
+        if ($userRoles->contains('mentor')) {
+            $abilities[] = 'mentor-access';
+        }
+
         return $abilities;
+    }
+
+    /**
+     * Get the user's primary role (member or mentor)
+     * Returns 'member' as default if no role is assigned
+     */
+    private function getUserPrimaryRole($user)
+    {
+        $roleNames = $user->roles()->pluck('role_name');
+
+        // Priority: mentor > member > default to member
+        if ($roleNames->contains('mentor')) {
+            return 'mentor';
+        }
+        if ($roleNames->contains('member')) {
+            return 'member';
+        }
+
+        // Default to member if no member/mentor role assigned
+        return 'member';
+    }
+
+    /**
+     * Add user data with role for API responses
+     */
+    private function getUserWithRole($user)
+    {
+        $userData = $user->toArray();
+        $userData['role'] = $this->getUserPrimaryRole($user);
+        return $userData;
     }
 
     private function sendEmailVerification($user)
