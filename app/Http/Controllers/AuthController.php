@@ -494,13 +494,17 @@ class AuthController extends Controller
 
     public function getUserProfile($id)
     {
-        $user = User::find($id);
+        $user = User::with('roles')->find($id);
 
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        return response()->json($user);
+        // Include user role (mentor/member) for badge display
+        $userData = $user->toArray();
+        $userData['user_role'] = $this->getUserPrimaryRole($user);
+
+        return response()->json($userData);
     }
 
     /**
@@ -517,11 +521,13 @@ class AuthController extends Controller
         $userIds = $request->user_ids;
 
         // Fetch all users in one query - IMPORTANT: Use 'user_id' as primary key
-        $users = User::whereIn('user_id', $userIds)
+        // Include roles relationship for mentor badge
+        $users = User::with('roles')
+            ->whereIn('user_id', $userIds)
             ->select('user_id', 'username', 'email', 'first_name', 'last_name')
             ->get();
 
-        // Format response
+        // Format response with user role (mentor/member)
         $profiles = $users->map(function($user) {
             return [
                 'id' => $user->user_id,
@@ -530,6 +536,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
+                'user_role' => $this->getUserPrimaryRole($user),
             ];
         });
 
