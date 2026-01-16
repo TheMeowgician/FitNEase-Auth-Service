@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
     Route::delete('/fitness-assessments/{id}', [AssessmentController::class, 'destroy']);
     Route::get('/users/{userId}/assessments', [AssessmentController::class, 'getUserAssessments']);
     Route::get('/users/{userId}/assessments/{type}', [AssessmentController::class, 'getAssessmentsByType']);
+    Route::get('/weekly-assessment-status', [AssessmentController::class, 'getWeeklyAssessmentStatus']);
 });
 
 // ML Profile Management - accessible to authenticated users

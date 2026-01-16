@@ -123,4 +123,48 @@ class AssessmentController extends Controller
 
         return response()->json($assessments);
     }
+
+    /**
+     * Check if user has submitted weekly assessment this week.
+     * Returns status and last assessment details if exists.
+     */
+    public function getWeeklyAssessmentStatus(Request $request)
+    {
+        $userId = $request->user()->user_id;
+
+        // Calculate start of current week (Monday 00:00:00)
+        $weekStart = now()->startOfWeek(\Carbon\Carbon::MONDAY);
+        $weekEnd = now()->endOfWeek(\Carbon\Carbon::SUNDAY);
+
+        // Find weekly assessment submitted this week
+        $thisWeekAssessment = FitnessAssessment::where('user_id', $userId)
+            ->where('assessment_type', 'weekly')
+            ->whereBetween('assessment_date', [$weekStart, $weekEnd])
+            ->orderBy('assessment_date', 'desc')
+            ->first();
+
+        // Get last weekly assessment (regardless of week)
+        $lastAssessment = FitnessAssessment::where('user_id', $userId)
+            ->where('assessment_type', 'weekly')
+            ->orderBy('assessment_date', 'desc')
+            ->first();
+
+        $completedThisWeek = $thisWeekAssessment !== null;
+
+        return response()->json([
+            'completed_this_week' => $completedThisWeek,
+            'week_start' => $weekStart->toISOString(),
+            'week_end' => $weekEnd->toISOString(),
+            'this_week_assessment' => $thisWeekAssessment ? [
+                'id' => $thisWeekAssessment->assessment_id,
+                'submitted_at' => $thisWeekAssessment->assessment_date,
+                'score' => $thisWeekAssessment->score,
+            ] : null,
+            'last_assessment' => $lastAssessment ? [
+                'id' => $lastAssessment->assessment_id,
+                'submitted_at' => $lastAssessment->assessment_date,
+                'score' => $lastAssessment->score,
+            ] : null,
+        ]);
+    }
 }
