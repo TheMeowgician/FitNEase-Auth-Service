@@ -229,17 +229,36 @@ class AuthController extends Controller
             'code' => 'required|string|size:6'
         ]);
 
-        $user = User::where('email', $request->email)
-            ->where('email_verification_code', $request->code)
-            ->whereNull('email_verified_at')
-            ->first();
+        // Step 1: Find user by email
+        $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'Invalid verification code'], 400);
+            return response()->json(['error' => 'No account found with this email address'], 400);
         }
 
-        if ($user->email_verification_code_expires_at->isPast()) {
-            return response()->json(['error' => 'Verification code has expired'], 400);
+        // Step 2: Check if already verified
+        if ($user->email_verified_at) {
+            return response()->json(['error' => 'Email is already verified. Please login instead.'], 400);
+        }
+
+        // Step 3: Check if verification code exists
+        if (!$user->email_verification_code) {
+            return response()->json(['error' => 'No verification code found. Please request a new one.'], 400);
+        }
+
+        // Step 4: Check if code matches
+        if ($user->email_verification_code !== $request->code) {
+            \Log::warning('Verification code mismatch', [
+                'email' => $request->email,
+                'submitted_code' => $request->code,
+                'expected_code' => $user->email_verification_code,
+            ]);
+            return response()->json(['error' => 'Invalid verification code. Please check and try again.'], 400);
+        }
+
+        // Step 5: Check if code has expired
+        if ($user->email_verification_code_expires_at && $user->email_verification_code_expires_at->isPast()) {
+            return response()->json(['error' => 'Verification code has expired. Please request a new one.'], 400);
         }
 
         // Update user verification status and last login
