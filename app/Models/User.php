@@ -41,6 +41,8 @@ class User extends Authenticatable
         'email_verification_sent_at',
         'email_verification_code',
         'email_verification_code_expires_at',
+        'password_reset_code',
+        'password_reset_code_expires_at',
         'last_login',
         // User Progression System fields
         'fitness_level_updated_at',
@@ -70,6 +72,7 @@ class User extends Authenticatable
             'onboarding_completed_at' => 'datetime',
             'email_verification_sent_at' => 'datetime',
             'email_verification_code_expires_at' => 'datetime',
+            'password_reset_code_expires_at' => 'datetime',
             'last_login' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

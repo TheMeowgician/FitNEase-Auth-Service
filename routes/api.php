@@ -24,6 +24,8 @@ Route::prefix('auth')->group(function () {
     Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/verify-code', [AuthController::class, 'verifyEmailCode']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/email-verification-status/{userId}', [AuthController::class, 'emailVerificationStatus']);
     Route::get('/debug-verification-code/{email}', [AuthController::class, 'getVerificationCodeForDebug']);
     Route::get('/debug-user-status/{email}', [AuthController::class, 'getUserStatusForDebug']);

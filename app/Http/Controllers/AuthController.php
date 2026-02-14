@@ -675,6 +675,98 @@ class AuthController extends Controller
         return $userData;
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            // Return generic success to prevent email enumeration
+            return response()->json([
+                'message' => 'If an account exists with this email, a password reset code has been sent.'
+            ]);
+        }
+
+        // Rate limit: prevent sending too frequently
+        if ($user->password_reset_code_expires_at &&
+            $user->password_reset_code_expires_at->subMinutes(10)->isFuture()) {
+            return response()->json([
+                'error' => 'Please wait before requesting another reset code.'
+            ], 429);
+        }
+
+        $resetCode = sprintf('%06d', mt_rand(100000, 999999));
+
+        $user->update([
+            'password_reset_code' => $resetCode,
+            'password_reset_code_expires_at' => now()->addMinutes(15),
+        ]);
+
+        $this->sendPasswordResetEmail($user);
+
+        return response()->json([
+            'message' => 'If an account exists with this email, a password reset code has been sent.'
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6',
+            'new_password' => 'required|min:8'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Invalid reset request.'], 400);
+        }
+
+        if (!$user->password_reset_code) {
+            return response()->json(['error' => 'No reset code found. Please request a new one.'], 400);
+        }
+
+        if ($user->password_reset_code !== $request->code) {
+            return response()->json(['error' => 'Invalid reset code. Please check and try again.'], 400);
+        }
+
+        if ($user->password_reset_code_expires_at && $user->password_reset_code_expires_at->isPast()) {
+            return response()->json(['error' => 'Reset code has expired. Please request a new one.'], 400);
+        }
+
+        $user->update([
+            'password_hash' => Hash::make($request->new_password),
+            'password_reset_code' => null,
+            'password_reset_code_expires_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Password has been reset successfully. You can now log in with your new password.'
+        ]);
+    }
+
+    private function sendPasswordResetEmail($user)
+    {
+        try {
+            $commsClient = new Client();
+
+            $commsClient->post(env('COMMS_SERVICE_URL') . '/api/comms/send-password-reset', [
+                'json' => [
+                    'user_id' => $user->user_id,
+                    'email' => $user->email,
+                    'reset_code' => $user->password_reset_code,
+                    'user_name' => $user->first_name,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send password reset email: ' . $e->getMessage());
+        }
+    }
+
     private function sendEmailVerification($user)
     {
         try {
