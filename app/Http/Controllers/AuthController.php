@@ -543,7 +543,7 @@ class AuthController extends Controller
         // Include roles relationship for mentor badge
         $users = User::with('roles')
             ->whereIn('user_id', $userIds)
-            ->select('user_id', 'username', 'email', 'first_name', 'last_name')
+            ->select('user_id', 'username', 'email', 'first_name', 'last_name', 'profile_picture')
             ->get();
 
         // Format response with user role (mentor/member)
@@ -555,6 +555,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
+                'profile_picture' => $user->profile_picture,
                 'user_role' => $this->getUserPrimaryRole($user),
             ];
         });
