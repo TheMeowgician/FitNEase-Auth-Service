@@ -43,7 +43,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/user-by-username/{username}', [UserController::class, 'getUserByUsername']);
     });
 
-    Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/user-profile/{id}', [AuthController::class, 'updateProfile']);
     });
 
@@ -52,7 +52,7 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/fitness-assessment', [AssessmentController::class, 'store']);
     Route::get('/fitness-assessments', [AssessmentController::class, 'index']);
     Route::get('/fitness-assessments/{id}', [AssessmentController::class, 'show']);
