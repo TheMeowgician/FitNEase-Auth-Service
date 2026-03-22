@@ -67,9 +67,17 @@ class AuthController extends Controller
 
         $this->sendEmailVerification($user);
 
+        // Create authentication token so user can proceed to onboarding without email verification
+        $abilities = $this->getUserAbilities($user);
+        $token = $user->createToken('fitnease-mobile', $abilities)->plainTextToken;
+
         return response()->json([
             'message' => 'Registration successful. Please check your email for verification.',
-            'user_id' => $user->user_id
+            'user_id' => $user->user_id,
+            'user' => $this->getUserWithRole($user->fresh()),
+            'token' => $token,
+            'abilities' => $abilities,
+            'expires_at' => now()->addDays(365)
         ], 201);
     }
 
@@ -88,13 +96,6 @@ class AuthController extends Controller
 
         if (!$user->is_active) {
             return response()->json(['error' => 'Account disabled'], 401);
-        }
-
-        if (!$user->email_verified_at) {
-            return response()->json([
-                'error' => 'Email not verified',
-                'requires_verification' => true
-            ], 403);
         }
 
         // Update last login and track active days
